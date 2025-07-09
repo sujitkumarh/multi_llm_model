@@ -63,18 +63,17 @@ Save a screenshot as: assets/screenshot.png
 
 Run:
 
-bash
-Copy
-Edit
+```bash
 python main.py --mode screenshot
+```
+
 ⚙️ DevOps Mode
 Purpose:
 Give DevOps instructions (e.g., write Ansible playbook).
 
-bash
-Copy
-Edit
+```bash
 python main.py --mode devops
+```
 The assistant will answer and ask:
 
 Would you like to continue or end the conversation?
@@ -83,10 +82,9 @@ Would you like to continue or end the conversation?
 Purpose:
 Multi-agent planner → coder → reviewer → user approval loop.
 
-bash
-Copy
-Edit
+```bash
 python main.py --mode coder
+```bash
 Optimized for building and reviewing code in steps via local LLM.
 
 
