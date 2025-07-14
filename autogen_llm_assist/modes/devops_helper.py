@@ -4,32 +4,45 @@ import json
 
 def run():
     config = json.load(open("config/ollama_config.json"))
-    
+
     assistant = AssistantAgent(
         name="devops_bot",
         llm_config=config
     )
 
-    user = UserProxyAgent(
+    def is_devops_related(prompt: str) -> bool:
+        keywords = [
+            "ansible", "docker", "kubernetes", "terraform",
+            "ci/cd", "jenkins", "aws", "ubuntu", "linux",
+            "restart", "apache", "nginx", "cloud", "server",
+            "infrastructure", "prometheus", "grafana", "pipeline"
+        ]
+        return any(keyword in prompt.lower() for keyword in keywords)
+
+    class StrictUserProxyAgent(UserProxyAgent):
+        def get_human_input(self, prompt: str) -> str:
+            message = input(prompt)
+            if message.lower() in ["exit", "end"]:
+                print("\n👋 Ending the conversation. Goodbye!\n")
+                exit()
+
+            if not is_devops_related(message):
+                print("\n❌ This assistant only handles **DevOps-related** tasks. Please try again with a relevant query.\n")
+                return self.get_human_input(prompt)
+
+            return message
+
+    user = StrictUserProxyAgent(
         name="user",
-        human_input_mode="ALWAYS",  # Allow manual input at end
+        human_input_mode="ALWAYS",
         code_execution_config={"use_docker": False}
     )
-
-    def is_devops_related(prompt: str) -> bool:
-        keywords = ["ansible", "docker", "kubernetes", "terraform", "ci/cd", "jenkins", "aws", "ubuntu", "restart", "apache"]
-        return any(keyword in prompt.lower() for keyword in keywords)
 
     class CustomGroupChatManager(GroupChatManager):
         def _process_received_message(self, sender, message, silent):
             if message.strip().lower() == "end":
                 print("\n👋 Ending the conversation. Goodbye!\n")
                 exit()
-
-            if not is_devops_related(message):
-                print("\n⚠️ This assistant only handles DevOps-related tasks. Please ask something relevant.\n")
-                return
-
             super()._process_received_message(sender, message, silent)
             print("\n🔁 Would you like to continue the chat or type 'end' to exit?\n")
 
